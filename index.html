@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loading</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type='text/javascript' src='knockout-3.5.0beta.js'></script>
+    <script src="sammy.js" type="text/javascript"></script>
+</head>
+<body>
+    <ul data-bind="foreach: menu">
+        <li data-bind="text: $data, click: $root.goToPage"></li>
+    </ul>
+
+    <div data-bind="if: landingPage">
+        <p data-bind="html: landingPage"></p>
+    </div>
+
+    <div data-bind="if: products">
+        <p data-bind="text: ko.toJSON(products)"></p>
+    </div>
+<script>
+    function AppViewModel() {
+        let self = this;
+
+        self.menu = ['Index', 'Products'];
+        self.currentMenu = ko.observable('index');
+        self.products = ko.observable();
+
+        self.landingPage = ko.observable();
+
+        self.goToPage = (page) => {location.hash = page.toLowerCase()};
+
+        self.clearAllVar = () => {
+            self.landingPage(null);
+            self.products(null);
+        };
+
+        Sammy(function() {
+            this.get('/#index', () => {
+                self.clearAllVar();
+
+                self.landingPage('Welcome!')
+            });
+
+            this.get('/#products', () => {
+                self.clearAllVar();
+
+                $.get( "http://api.ao-webshop.school.local/product", function( data ) {
+                    self.products(data);
+                });
+            });
+
+            this.get('/', () => { this.app.runRoute('get', '#index') });
+        }).run();
+    }
+
+    ko.applyBindings(new AppViewModel());
+</script>
+</body>
+</html>
